@@ -104,7 +104,7 @@ int ttbar_control_region_total(){
         l->AddEntry(hwjets,"W+jet","f");
 	//Wjets
 	//data
-	        TChain *data=new TChain("t");
+	TChain *data=new TChain("t");
         int run,evt;
         data->SetBranchAddress("Common_run",&run);
         data->SetBranchAddress("Common_evt",&evt);
