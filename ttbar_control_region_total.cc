@@ -21,7 +21,7 @@ bool fill_histogram(TH1F* hist,const float cross_section,const char* path){
 //cross sections are in pb
 //histograms are filled in the function
 
-int ttbar_control_region_example(){
+int ttbar_control_region_total(){
 	THStack *hs=new THStack("",";;N/Events");
 	TLegend *l=new TLegend(0.9,0.6,1.,0.85);
 	//ttbar
