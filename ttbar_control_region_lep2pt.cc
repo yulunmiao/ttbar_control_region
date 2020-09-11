@@ -1,27 +1,29 @@
 typedef ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<float> > LV;
 #include "Color.h"
 #define LUMI 59.74
-#define NBIN 1
-#define INF 0
-#define SUP 1
+#define NBIN 20
+#define INF 20
+#define SUP 250
 
 
 bool fill_histogram(TH1F* hist,const float cross_section,const char* path){
 	TChain *chain=new TChain("t");
+	vector<LV> *lepp4=0;
+	chain->SetBranchAddress("SS2jet_lep_p4",&lepp4);
 	chain->Add(path);
 	TFile *file=TFile::Open(path);
 	if(!file->IsOpen()) return false;
 	float scale= cross_section * 1000 * LUMI / ((TH1F*) file->Get("Wgt__h_nevents"))->Integral();
 	for(unsigned int i=0;i<chain->GetEntries();i++){
 		chain->GetEntry(i);
-		hist->Fill(0.,scale);
+		hist->Fill(lepp4->at(1).pt(),scale);
 	}
 	return true;
 }
 //cross sections are in pb
 //histograms are filled in the function
 
-int ttbar_control_region_total(){
+int ttbar_control_region_lep2pt(){
         gStyle->SetOptStat(0);
 	THStack *hs=new THStack("",";;N/Events");
 	TLegend *l=new TLegend(0.9,0.6,1.,0.85);
@@ -107,10 +109,12 @@ int ttbar_control_region_total(){
 	//data
         TChain *data=new TChain("t");
         int run,evt;
+	vector<LV> *lepp4=0;
+        data->SetBranchAddress("SS2jet_lep_p4",&lepp4);
         data->SetBranchAddress("Common_run",&run);
         data->SetBranchAddress("Common_evt",&evt);
         data->Add("/home/yulunmiao/Documents/CMS_data/SS1FatJet/2018_data_sep3_2020/data.root");
-        TH1F *hdata=new TH1F("",";;N/Events",NBIN,INF,SUP);
+        TH1F *hdata=new TH1F("",";p_{t};N/Events",NBIN,INF,SUP);
         vector<long long> checkDuplicates;
         checkDuplicates.clear();
         for(unsigned int i=0;i<data->GetEntries();i++){
@@ -126,14 +130,13 @@ int ttbar_control_region_total(){
                 }
                 if(duplicates==true) continue;
                 checkDuplicates.push_back(dupCheck);
-                hdata->Fill(0.);
+                hdata->Fill(lepp4->at(1).pt());
         }
         hdata->SetMarkerStyle(8);
         hdata->SetMarkerColor(1);
         l->AddEntry(hdata,"data");
 	//data
         TCanvas *c=new TCanvas();
-	hdata->GetXaxis()->SetLabelSize(0);
         hdata->SetMinimum(0);
 	hdata->Draw("ex0");
         hs->Draw("hist same");
