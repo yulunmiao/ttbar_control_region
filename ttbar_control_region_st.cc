@@ -1,3 +1,34 @@
+#include <TF1.h>
+#include <TH1D.h>
+#include <TH2F.h>
+#include <TH3F.h>
+#include <TROOT.h>
+#include <TFile.h>
+#include <TTree.h>
+#include <TSystem.h>
+#include <TChain.h>
+#include <TLorentzVector.h>
+#include <TLegend.h>
+#include <iostream>
+#include <stdlib.h>
+#include <stdio.h>
+#include <algorithm>
+#include <TGraphAsymmErrors.h>
+#include <TVector3.h>
+#include <TGraph.h>
+#include <TRandom.h>
+#include <TMath.h>
+#include <fstream>
+#include <TH2D.h>
+#include <TCanvas.h>
+#include <TStyle.h>
+#include <TLatex.h>
+#include <THStack.h>
+#include "Math/GenVector/LorentzVector.h"
+#include "Math/GenVector/PtEtaPhiM4D.h"
+#include "Math/GenVector/VectorUtil.h"
+#include "Math/Point3D.h"
+
 typedef ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<float> > LV;
 #include "Color.h"
 #define LUMI 59.74
@@ -9,7 +40,7 @@ typedef ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<float> > LV;
 bool fill_histogram(TH1F* hist,const float cross_section,const char* path){
 	TChain *chain=new TChain("t");
 	vector<LV> *fatjetp4=0,*jetp4=0,*lepp4=0;
-	LV met;
+	LV *met=0;
 	chain->SetBranchAddress("SS2jet_fatjet_p4",&fatjetp4);
 	chain->SetBranchAddress("SS2jet_jet_p4",&jetp4);
         chain->SetBranchAddress("SS2jet_lep_p4",&lepp4);
@@ -36,7 +67,7 @@ bool fill_histogram(TH1F* hist,const float cross_section,const char* path){
 			}
 			if(overlap==false) result+=jetp4->at(j).pt();
 		}
-		result+=met.pt();
+		result+=met->pt();
 		hist->Fill(result,scale);
 	}
 	return true;
@@ -129,16 +160,17 @@ int ttbar_control_region_st(){
 	//Wjets
 	//data
         TChain *data=new TChain("t");
-        int run,evt;
+        int run;
+	unsigned long long evt;
 	vector<LV> *fatjetp4=0,*jetp4=0,*lepp4=0;
-	LV met;
+	LV *met=0;
 	data->SetBranchAddress("SS2jet_fatjet_p4",&fatjetp4);
         data->SetBranchAddress("SS2jet_jet_p4",&jetp4);
         data->SetBranchAddress("SS2jet_lep_p4",&lepp4);
         data->SetBranchAddress("Common_met_p4",&met);
         data->SetBranchAddress("Common_run",&run);
         data->SetBranchAddress("Common_evt",&evt);
-        data->Add("/home/yulunmiao/Documents/CMS_data/SS1FatJet/2018_data_sep3_2020/data.root");
+        data->Add("./2018_data_sep3_2020/data.root");
         TH1F *hdata=new TH1F("",";s_{T}(GeV);N/Events",NBIN,INF,SUP);
         vector<long long> checkDuplicates;
         checkDuplicates.clear();
@@ -172,7 +204,7 @@ int ttbar_control_region_st(){
                         }
                         if(overlap==false) result+=jetp4->at(j).pt();
                 }
-                result+=met.pt();
+                result+=met->pt();
                 hdata->Fill(result);
         }
         hdata->SetMarkerStyle(8);
@@ -181,7 +213,8 @@ int ttbar_control_region_st(){
 	//data
         TCanvas *c=new TCanvas();
         hdata->SetMinimum(0);
-        hs->Draw("hist");
+	hdata->Draw("ex0");
+        hs->Draw("hist same");
         hdata->Draw("ex0 same");
         l->Draw();
 	return 0;
